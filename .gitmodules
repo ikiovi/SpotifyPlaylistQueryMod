@@ -1,0 +1,3 @@
+[submodule "src/SpotifyPlaylistQueryMod.Shared"]
+	path = src/SpotifyPlaylistQueryMod.Shared
+	url = https://github.com/ikiovi/SpotifyPlaylistQueryMod.Shared

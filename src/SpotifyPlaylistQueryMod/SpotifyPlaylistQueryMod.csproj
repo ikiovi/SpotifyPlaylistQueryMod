@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<UserSecretsId>e462834d-e47c-4011-a8c4-58d5052f8717</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MemoryPack" Version="1.21.3" />
+
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
+		<PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.10" />
+
+		<PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />
+		<PackageReference Include="SpotifyAPI.Web.Auth" Version="7.2.1" />
+
+		<PackageReference Include="AspNet.Security.OAuth.Spotify" Version="8.3.0" />
+
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.10" />
+
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+		<PackageReference Include="System.Text.Json" Version="8.0.5" />
+
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="SpotifyPlaylistQueryMod.Tests.Unit" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Data\Migrations\" />
+		<Folder Include="Web\Configuration\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\SpotifyPlaylistQueryMod.Shared\src\SpotifyPlaylistQueryMod.Shared\SpotifyPlaylistQueryMod.Shared.csproj" />
+	</ItemGroup>
+</Project>

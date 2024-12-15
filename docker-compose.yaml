@@ -1,0 +1,59 @@
+networks:
+    spotify-pqm:
+
+volumes:
+  spotify-pqm-pg:
+
+services:
+    spotify-pqm-backend:
+        build: 
+            context: .
+        restart: on-failure
+        stop_signal: SIGINT
+        
+        ports:
+        - 127.0.0.1:5001:80
+
+        environment:
+        - ASPNETCORE_HTTP_PORTS=80
+
+        networks:
+            - spotify-pqm
+
+        depends_on:
+            spotify-pqm-pg:
+                condition: service_healthy
+                restart: true
+            spotify-pqm-cache:
+                condition: service_started
+        
+
+    spotify-pqm-pg:
+        image: "postgres:15.10"
+        restart: always
+        stop_signal: SIGINT
+        
+        volumes:
+            - spotify-pqm-pg:/var/lib/postgresql/data
+
+        networks:
+            - spotify-pqm
+
+        environment:
+            - POSTGRES_DB=pqm
+            - POSTGRES_USER=pqm
+            - POSTGRES_PASSWORD=pqm
+            - PGUSER=pqm
+
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    spotify-pqm-cache:
+        image: "valkey/valkey:8.0.1-alpine"
+        restart: always
+         
+        networks:
+            - spotify-pqm
