@@ -2,6 +2,7 @@
 using AspNet.Security.OAuth.Spotify;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.HttpOverrides;
 using SpotifyPlaylistQueryMod.Spotify.Configuration;
 using SpotifyPlaylistQueryMod.Spotify.Services;
 using SpotifyPlaylistQueryMod.Web;
@@ -23,6 +24,7 @@ public static partial class DependencyInjection
         services.AddHttpContextAccessor();
 
         services.ConfigureAuthentication(config);
+        services.ConfgureForwardedHeaders();
 
         services.AddCookieSessionStore(config);
 
@@ -31,6 +33,17 @@ public static partial class DependencyInjection
         return services;
     }
 
+    public static IServiceCollection ConfgureForwardedHeaders(this IServiceCollection services)
+    {
+        services.Configure<ForwardedHeadersOptions>(opts =>
+        {
+            opts.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+            opts.KnownProxies.Clear();
+            opts.KnownNetworks.Clear();
+        });
+
+        return services;
+    }
     public static IServiceCollection ConfigureExceptionHandlers(this IServiceCollection services, IConfiguration config)
     {
         services.AddExceptionHandler<AuthorizationExceptionHandler>();

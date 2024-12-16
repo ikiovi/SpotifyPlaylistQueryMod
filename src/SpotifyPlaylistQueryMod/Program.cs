@@ -25,10 +25,7 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.InitializeDPDatabaseAsync();
 }
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
-});
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
