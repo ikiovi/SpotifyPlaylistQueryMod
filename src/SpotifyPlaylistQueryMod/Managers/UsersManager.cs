@@ -18,11 +18,13 @@ public sealed class UsersManager
 {
     private readonly ILogger<UsersManager> logger;
     private readonly ApplicationDbContext context;
+    private readonly IAsyncPolicy retryPolicy;
 
-    public UsersManager(ILogger<UsersManager> logger, ApplicationDbContext context)
+    public UsersManager(ILogger<UsersManager> logger, ApplicationDbContext context, [DbRetryPolicy] IAsyncPolicy retryPolicy)
     {
         this.context = context;
         this.logger = logger;
+        this.retryPolicy = retryPolicy;
     }
 
     public async Task<User> GetAuthenticatedUserAsync(string userId)
@@ -110,6 +112,16 @@ public sealed class UsersManager
         await context.Users.AddAsync(user, cancel);
         await context.SaveChangesAsync(cancel);
         return user;
+    }
+
+    public Task UpdateCollaborationStatusAsync(string userId, bool status, CancellationToken cancel = default)
+    {
+        return retryPolicy.ExecuteAsync(async () =>
+        {
+            User user = await GetAuthenticatedUserAsync(userId);
+            user.IsCollaborationEnabled = status;
+            await context.SaveChangesAsync(cancel);
+        });
     }
 
     public Task<List<string>> GetValidCollaboratorsAsync(ICollection<string> users, CancellationToken cancel)

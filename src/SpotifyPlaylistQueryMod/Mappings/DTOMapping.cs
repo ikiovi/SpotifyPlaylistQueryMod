@@ -6,6 +6,16 @@ namespace SpotifyPlaylistQueryMod.Mappings;
 
 public static class DTOMapping
 {
+    public static UserDTO ToDTO(this User user)
+    {
+        return new()
+        {
+            Id = user.Id,
+            IsCollaborationEnabled = user.IsCollaborationEnabled,
+            Privileges = user.Privileges
+        };
+    }
+
     public static PlaylistQueryDTO ToDTO(this PlaylistQueryInfo query, PlaylistQueryExecutionStatus status)
     {
         return new(status)

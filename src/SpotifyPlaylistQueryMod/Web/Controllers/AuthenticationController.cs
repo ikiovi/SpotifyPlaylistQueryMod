@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 
 namespace SpotifyPlaylistQueryMod.Web.Controllers;
-[Route("auth")]
+
+[Route("api/Auth")]
 [ApiController]
 public sealed class AuthenticationController : ControllerBase
 {
