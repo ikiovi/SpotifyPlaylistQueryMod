@@ -1,5 +1,6 @@
 ﻿using Polly;
 using Polly.Extensions.Http;
+using Polly.Timeout;
 using SpotifyPlaylistQueryMod.Background.Configuration;
 using SpotifyPlaylistQueryMod.Background.Managers;
 using SpotifyPlaylistQueryMod.Background.Services;
@@ -36,13 +37,17 @@ public static partial class DependencyInjection
 
         services.AddScoped<PlaylistUpdateChecker>();
         services.AddTransient<QueryExecuteService>();
+
+        //TODO: Сonfiguration
+        IAsyncPolicy<HttpResponseMessage> retry = HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .Or<TimeoutRejectedException>()
+            .WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5));
+        IAsyncPolicy<HttpResponseMessage> timeout = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(15));
+
         services.AddHttpClient<QueryExecuteService>()
         .SetHandlerLifetime(TimeSpan.FromMinutes(5))
-        .AddPolicyHandler(
-            HttpPolicyExtensions
-            .HandleTransientHttpError()
-            .WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5))  //TODO: Сonfiguration
-        );
+        .AddPolicyHandler(Policy.WrapAsync(timeout, retry));
 
         services.AddBackgroundDataManagers(config);
 
