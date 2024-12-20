@@ -62,17 +62,12 @@ public static class SpotifyAPIExtensions
         };
     }
 
-    public static async Task EnsureReadAccessAsync(this IPlaylistsClient client, string id, CancellationToken cancel = default)
-    {
-        await client.GetAsync(id, SpotifyRequestConstants.PlaylistStateRequestOptions, cancel);
-    }
-
     public static async IAsyncEnumerable<TrackInfo> GetPlaylistTracksAsync(this ISpotifyClient client, string id, [EnumeratorCancellation] CancellationToken cancel = default)
     {
         Paging<PlaylistTrack<IPlayableItem>> tracks = await client.Playlists
             .GetItems(id, SpotifyRequestConstants.TrackInfoRequestOptions, cancel)
             .MapExceptions(id);
-        
+
         await foreach (var track in client.Paginate(tracks, cancel: cancel))
         {
             if (track.Track is not FullTrack { Id: string trackId }) continue;
@@ -85,6 +80,9 @@ public static class SpotifyAPIExtensions
             };
         }
     }
+
+    public static Task EnsureReadAccessAsync(this IPlaylistsClient client, string id, CancellationToken cancel = default) =>
+        client.GetAsync(id, SpotifyRequestConstants.PlaylistStateRequestOptions, cancel);
 
     public static Task EnsureWriteAccessAsync(this IPlaylistsClient client, string id, CancellationToken cancel = default) =>
         client.ChangeDetails(id, WriteAccessCheckRequest, cancel).MapExceptions(id);

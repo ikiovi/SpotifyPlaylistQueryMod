@@ -2,7 +2,7 @@
 using SpotifyPlaylistQueryMod.Utils;
 using SpotifyPlaylistQueryMod.Models;
 
-namespace SpotifyPlaylistQueryMod.Spotify.Models;
+namespace SpotifyPlaylistQueryMod.Spotify.Utils;
 
 internal class CollaborativeInsertRequest
 {
@@ -47,7 +47,7 @@ internal class CollaborativeInsertRequest
     {
         foreach (TracksInsertRequest r in RemainingRequests)
         {
-            var currentUserId = validUsers.Contains(r.UserId) ? r.UserId : DefaultUserId;
+            var currentUserId = UserIdOrDefault(r.UserId);
             IPlaylistsClient currentClient = clients[currentUserId];
 
             var position = GetAbsolutePosition(TotalTracksCount, AbsolutePosition + r.RelativePosititon);

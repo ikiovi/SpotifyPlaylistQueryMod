@@ -1,11 +1,9 @@
-﻿using System.Net;
-using System.Net.Http.Headers;
-using Microsoft.Net.Http.Headers;
+﻿using Microsoft.Net.Http.Headers;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Http;
 using SpotifyPlaylistQueryMod.Spotify.Services;
 
-namespace SpotifyPlaylistQueryMod.Spotify.Models;
+namespace SpotifyPlaylistQueryMod.Spotify.Utils;
 
 internal sealed class UserBasedAuthorizationCodeAuthenticator : IAuthenticator
 {

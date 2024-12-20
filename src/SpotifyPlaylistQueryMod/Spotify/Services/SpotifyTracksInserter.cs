@@ -5,6 +5,7 @@ using SpotifyPlaylistQueryMod.Models.Entities;
 using SpotifyPlaylistQueryMod.Managers;
 using System.Diagnostics;
 using SpotifyPlaylistQueryMod.Spotify.Models;
+using SpotifyPlaylistQueryMod.Spotify.Utils;
 
 namespace SpotifyPlaylistQueryMod.Spotify.Services;
 
