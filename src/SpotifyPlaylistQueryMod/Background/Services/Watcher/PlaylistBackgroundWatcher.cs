@@ -2,6 +2,7 @@
 using SpotifyPlaylistQueryMod.Background.Configuration;
 using SpotifyPlaylistQueryMod.Background.Managers;
 using SpotifyPlaylistQueryMod.Background.Models;
+using SpotifyPlaylistQueryMod.Models;
 using SpotifyPlaylistQueryMod.Spotify.Exceptions;
 using SpotifyPlaylistQueryMod.Utils;
 
@@ -35,21 +36,21 @@ internal sealed class PlaylistBackgroundWatcher : BackgroundService
         }
     }
 
-    private async Task CheckPlaylistsAsync(bool onlyProcessing, CancellationToken cancel)
+    private async Task CheckPlaylistsAsync(bool isProcessing, CancellationToken cancel)
     {
         using var scope = scopeFactory.CreateScope();
 
         var taskDistributor = scope.ServiceProvider.GetRequiredService<QueryTasksDistributor>();
         var updateChecker = scope.ServiceProvider.GetRequiredService<PlaylistUpdateChecker>();
-        var playlistManager = scope.ServiceProvider.GetRequiredService<SourcePlaylistStateManager>();
+        var playlistsManager = scope.ServiceProvider.GetRequiredService<SourcePlaylistStateManager>();
         var queriesManager = scope.ServiceProvider.GetRequiredService<QueryStateManager>();
 
-        var updateTask = new Dictionary<string, PlaylistInfoDiff>();
+        var updateTask = new Dictionary<string, IPlaylistInfo>();
         var privatePlaylists = new List<string>();
         var publicPlaylists = new List<string>();
         var unauthorizedUsers = new List<string>();
 
-        await foreach (PlaylistInfoDiff playlist in updateChecker.FetchPendingPlaylistsAsync(onlyProcessing, cancel))
+        await foreach (PlaylistInfoDiff playlist in updateChecker.FetchPendingPlaylistsAsync(isProcessing, cancel))
         {
             if (playlist.IsPrivateChanged && playlist.IsPrivate)
                 privatePlaylists.Add(playlist.Id);
@@ -61,9 +62,8 @@ internal sealed class PlaylistBackgroundWatcher : BackgroundService
 
         if (updateTask.Count == 0) return;
 
-        await playlistManager.ExecuteIsPrivateUpdateAsync(privatePlaylists, true, cancel);
-        await playlistManager.ExecuteIsPrivateUpdateAsync(publicPlaylists, false, cancel);
-
+        await playlistsManager.ExecuteIsPrivateUpdateAsync(privatePlaylists, true, cancel);
+        await playlistsManager.ExecuteIsPrivateUpdateAsync(publicPlaylists, false, cancel);
         await queriesManager.ExecuteReadStatusUpdateAsync(publicPlaylists, true, cancel);
         await queriesManager.ExecuteReadStatusUpdateAsync(privatePlaylists, false, cancel);
 

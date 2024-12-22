@@ -90,12 +90,47 @@ public sealed class QueriesManager
         await context.SaveChangesAsync(cancel);
 
         if (!sourceIdChanged && !targetIdChanged) return true;
-        await ResetPlaylistQueryState(id, sourceIdChanged, targetIdChanged, cancel).WithRetryPolicy(retryPolicy);
+        await ResetPlaylistQueryStateAsync(id, sourceIdChanged, targetIdChanged, cancel).WithRetryPolicy(retryPolicy);
         return true;
-
     }
 
-    private async Task ResetPlaylistQueryState(int id, bool targetIdChanged, bool sourceIdChanged, CancellationToken cancel = default)
+    public Task ResetPlaylistQueryStateAsync(int id, CancellationToken cancel = default)
+    {
+        return retryPolicy.ExecuteAsync(async () =>
+        {
+            PlaylistQueryState? query = await context.QueriesState
+            .IgnoreAutoIncludes()
+            .SingleAsync(s => s.Id == id, cancel);
+
+            query.ResetInputType();
+            query.LastRunSnapshotId = null;
+
+            await context.SaveChangesAsync(cancel);
+        });
+    }
+
+    public Task TriggerNextCheckAsync(int id, CancellationToken cancel = default)
+    {
+        return retryPolicy.ExecuteAsync(async () =>
+        {
+            SourcePlaylist playlist = await context.QueriesInfo
+           .Where(q => q.Id == id)
+           .Join(context.SourcePlaylists,
+               q => q.SourceId,
+               p => p.Id,
+               (_, p) => p
+           )
+           .SingleAsync(cancel);
+
+            if (playlist.IsProcessing || playlist.NextCheck < DateTimeOffset.UtcNow) return;
+
+            playlist.NextCheck = DateTimeOffset.UtcNow;
+
+            await context.SaveChangesAsync(cancel);
+        });
+    }
+
+    private async Task ResetPlaylistQueryStateAsync(int id, bool targetIdChanged, bool sourceIdChanged, CancellationToken cancel = default)
     {
         PlaylistQueryState? query = await context.QueriesState
             .IgnoreAutoIncludes()
@@ -103,12 +138,12 @@ public sealed class QueriesManager
 
         if (targetIdChanged)
         {
-            query.ClearTargetWriteStatus();
+            query.ClearWriteStatus();
             query.ResetInputType();
         }
         if (sourceIdChanged)
         {
-            query.ClearSourceReadStatus();
+            query.ClearReadStatus();
             query.LastRunSnapshotId = null;
         }
 

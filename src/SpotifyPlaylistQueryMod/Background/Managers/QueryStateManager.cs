@@ -1,12 +1,9 @@
 ﻿using System.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Polly;
 using SpotifyPlaylistQueryMod.Data;
-using SpotifyPlaylistQueryMod.Managers.Attributes;
 using SpotifyPlaylistQueryMod.Models.Entities;
-using SpotifyPlaylistQueryMod.Utils;
 using SpotifyPlaylistQueryMod.Shared.Enums;
+using SpotifyPlaylistQueryMod.Background.Models;
 
 namespace SpotifyPlaylistQueryMod.Background.Managers;
 
@@ -15,7 +12,7 @@ public class QueryStateManager
     private readonly ApplicationDbContext context;
     public QueryStateManager(ApplicationDbContext context) => this.context = context;
 
-    public async Task FinishProcessingAsync(PlaylistQueryState from, CancellationToken cancel)
+    public async Task FinishProcessingAsync(ProcessingQueryState from, CancellationToken cancel)
     {
         PlaylistQueryInfo? queryInfo = await context.QueriesInfo.FindAsync([from.Id], cancel);
         if (queryInfo == null || queryInfo.IsSuperseded) return;
@@ -31,15 +28,22 @@ public class QueryStateManager
             .IgnoreAutoIncludes()
             .SingleAsync(s => s.Id == from.Id, cancel);
 
-        if (!sourceIdChanged)
+        if (!sourceIdChanged && !from.IsSourceReadable)
         {
-            queryState.Status = from.Status & ~PlaylistQueryExecutionStatus.NoWriteAccess;
-            if (!queryState.Status.HasFlag(PlaylistQueryExecutionStatus.NoReadAccess)) queryState.LastRunSnapshotId = from.LastRunSnapshotId;
+            queryState.SetStatusUnreadable();
         }
-        if (!targetIdChanged)
+        else if (!sourceIdChanged && queryState.LastRunSnapshotId == from.OldState.LastRunSnapshotId)
         {
-            queryState.Status = from.Status & ~PlaylistQueryExecutionStatus.NoReadAccess;
-            if (!queryState.Status.HasFlag(PlaylistQueryExecutionStatus.NoWriteAccess)) queryState.InputType = from.InputType;
+            queryState.LastRunSnapshotId = from.LastRunSnapshotId;
+        }
+
+        if (!targetIdChanged && !from.IsTargetWritable)
+        {
+            queryState.SetStatusUnwritable();
+        }
+        else if (!targetIdChanged && queryState.InputType == from.OldState.InputType)
+        {
+            queryState.InputType = from.InputType;
         }
 
         await context.SaveChangesAsync(cancel);

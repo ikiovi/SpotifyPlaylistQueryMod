@@ -65,6 +65,20 @@ public sealed class QueriesController : ControllerBase
         }
     }
 
+    [HttpPost("{id}/reset")]
+    public async Task<IActionResult> ResetState(int id)
+    {
+        await queriesManager.ResetPlaylistQueryStateAsync(id);
+        return NoContent();
+    }
+
+    [HttpPost("{id}/schedule")]
+    public async Task<IActionResult> TriggerExecution(int id)
+    {
+        await queriesManager.TriggerNextCheckAsync(id);
+        return Accepted();
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePlaylistQuery(int id)
     {

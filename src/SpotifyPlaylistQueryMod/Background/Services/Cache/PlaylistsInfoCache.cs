@@ -9,21 +9,9 @@ public sealed class PlaylistsInfoCache
     private readonly IDistributedCache cache;
     public PlaylistsInfoCache(IDistributedCache cache) => this.cache = cache;
 
-    public async Task<string> GetPlaylistSnapshotIdAsync(string playlistId, CancellationToken cancel)
-    {
-        var snapshotId = await cache.GetStringAsync(playlistId, cancel);
-        if (string.IsNullOrWhiteSpace(snapshotId)) throw new KeyNotFoundException();
-
-        return snapshotId;
-    }
-
-    public Task StorePlaylistSnapshotAsync(IPlaylistInfo playlist, CancellationToken cancel) =>
-        cache.SetStringAsync(playlist.Id, playlist.SnapshotId, cancel);
-
     public Task RemovePlaylistChangesAsync(string playlistId, CancellationToken cancel)
     {
         return Task.WhenAll(
-            cache.RemoveAsync(playlistId, cancel),
             cache.RemoveAsync(ChangedTracksKey(playlistId), cancel),
             cache.RemoveAsync(PlaylistTracksKey(playlistId), cancel)
         );

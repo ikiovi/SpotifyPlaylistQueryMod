@@ -12,11 +12,11 @@ namespace SpotifyPlaylistQueryMod.Background.Services.Worker;
 
 internal sealed class PlaylistQueryBackgroundWorker : BackgroundService
 {
-    private readonly ITaskQueue<PlaylistQueryState> tasks;
+    private readonly ITaskQueue<ProcessingQueryState> tasks;
     private readonly ILogger<PlaylistQueryBackgroundWorker> logger;
     private readonly IServiceScopeFactory scopeFactory;
 
-    public PlaylistQueryBackgroundWorker(ILogger<PlaylistQueryBackgroundWorker> logger, IServiceScopeFactory scopeFactory, ITaskQueue<PlaylistQueryState> tasks)
+    public PlaylistQueryBackgroundWorker(ILogger<PlaylistQueryBackgroundWorker> logger, IServiceScopeFactory scopeFactory, ITaskQueue<ProcessingQueryState> tasks)
     {
         this.tasks = tasks;
         this.logger = logger;
@@ -29,7 +29,7 @@ internal sealed class PlaylistQueryBackgroundWorker : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            PlaylistQueryState query = await tasks.DequeueAsync(stoppingToken);
+            ProcessingQueryState state = await tasks.DequeueAsync(stoppingToken);
 
             using var scope = scopeFactory.CreateScope();
             var queriesManager = scope.ServiceProvider.GetRequiredService<QueryStateManager>();
@@ -37,31 +37,31 @@ internal sealed class PlaylistQueryBackgroundWorker : BackgroundService
 
             try
             {
-                await ProcessQueryAsync(query, scope, stoppingToken);
-                await queriesManager.FinishProcessingAsync(query, stoppingToken);
+                await ProcessQueryAsync(state, scope, stoppingToken);
+                await queriesManager.FinishProcessingAsync(state, stoppingToken);
             }
             catch (SpotifyItemInaccessibleException ex)
             {
-                if (ex.ItemId == query.Info.SourceId) query.SetSourceStatusUnreadable();
-                if (ex.ItemId == query.Info.SourceId) query.SetTargetStatusUnwritable();
-                await queriesManager.FinishProcessingAsync(query, stoppingToken);
+                if (ex.ItemId == state.Info.SourceId) state.SetStatusUnreadable();
+                if (ex.ItemId == state.Info.TargetId) state.SetStatusUnwritable();
+                await queriesManager.FinishProcessingAsync(state, stoppingToken);
             }
             catch (SpotifyAuthenticationFailureException ex) when (ex.InnerException is not DbUpdateException) { }
             catch (HttpRequestException) { }
-            await processingService.TryFinishPlaylistAsync(query.Info.SourceId, stoppingToken);
+            await processingService.TryFinishPlaylistAsync(state.Info.SourceId, stoppingToken);
         }
     }
 
-    private static async Task ProcessQueryAsync(PlaylistQueryState query, IServiceScope scope, CancellationToken cancel)
+    private static async Task ProcessQueryAsync(PlaylistQueryState state, IServiceScope scope, CancellationToken cancel)
     {
         var tis = scope.ServiceProvider.GetRequiredService<SpotifyTracksInserter>();
         var qes = scope.ServiceProvider.GetRequiredService<QueryExecuteService>();
 
-        PlaylistChangeResponse? changeResponse = await qes.ExecuteQueryAsync(query, cancel);
+        PlaylistChangeResponse? changeResponse = await qes.ExecuteQueryAsync(state, cancel);
 
         if (changeResponse is null) return;
 
-        query.InputType = changeResponse.OriginalResponse.NewInputType;
+        state.InputType = changeResponse.OriginalResponse.NewInputType;
 
         await tis.ApplyPlaylistChangeResponseAsync(changeResponse, cancel);
     }

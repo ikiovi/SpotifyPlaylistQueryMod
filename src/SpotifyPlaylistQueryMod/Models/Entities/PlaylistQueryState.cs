@@ -2,7 +2,7 @@
 
 namespace SpotifyPlaylistQueryMod.Models.Entities;
 
-public sealed record class PlaylistQueryState
+public record class PlaylistQueryState
 {
     public int Id { get; init; }
     public string? LastRunSnapshotId { get; set; }
@@ -13,17 +13,17 @@ public sealed record class PlaylistQueryState
     public void ResetInputType() =>
         InputType = PlaylistQueryInputType.ModifiedSourcePlaylist | (Info?.TargetId == null ? 0 : PlaylistQueryInputType.CurrentTargetPlaylist);
 
-    public void SetSourceStatusUnreadable() =>
-        Status = Status | PlaylistQueryExecutionStatus.Blocked | PlaylistQueryExecutionStatus.NoReadAccess;
-    public void SetTargetStatusUnwritable()
+    public void SetStatusUnreadable() =>
+      Status |= PlaylistQueryExecutionStatus.Blocked | PlaylistQueryExecutionStatus.NoReadAccess;
+    public void SetStatusUnwritable()
     {
         if (Info?.TargetId == null) throw new InvalidOperationException();
-        Status = Status | PlaylistQueryExecutionStatus.Blocked | PlaylistQueryExecutionStatus.NoWriteAccess;
+        Status |= PlaylistQueryExecutionStatus.Blocked | PlaylistQueryExecutionStatus.NoWriteAccess;
     }
 
-    public void ClearSourceReadStatus() =>
+    public void ClearReadStatus() =>
         Status = UpdateExecutionStatus(Status & ~PlaylistQueryExecutionStatus.NoReadAccess);
-    public void ClearTargetWriteStatus() =>
+    public void ClearWriteStatus() =>
         Status = UpdateExecutionStatus(Status & ~PlaylistQueryExecutionStatus.NoWriteAccess);
 
     public static PlaylistQueryExecutionStatus UpdateExecutionStatus(PlaylistQueryExecutionStatus status) =>

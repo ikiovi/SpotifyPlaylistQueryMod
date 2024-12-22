@@ -8,6 +8,7 @@ using SpotifyPlaylistQueryMod.Spotify.Exceptions;
 using SpotifyPlaylistQueryMod.Spotify.Models;
 using SpotifyPlaylistQueryMod.Spotify.Services;
 using SpotifyPlaylistQueryMod.Utils;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 namespace SpotifyPlaylistQueryMod.Background.Services.Watcher;
@@ -23,10 +24,14 @@ public sealed class PlaylistUpdateChecker
         this.clientFactory = clientFactory;
     }
 
-    public async IAsyncEnumerable<PlaylistInfoDiff> FetchPendingPlaylistsAsync(bool onlyProcessing, [EnumeratorCancellation] CancellationToken cancel = default)
+    public async IAsyncEnumerable<PlaylistInfoDiff> FetchPendingPlaylistsAsync(bool isProcessing, [EnumeratorCancellation] CancellationToken cancel = default)
     {
+        Expression<Func<SourcePlaylist, bool>> filter = isProcessing ?
+            p => p.IsProcessing :
+            p => p.NextCheck <= DateTimeOffset.UtcNow && !p.IsProcessing;
+
         List<SourcePlaylist> playlists = await context.SourcePlaylists
-            .Where(p => p.NextCheck <= DateTimeOffset.UtcNow && p.IsProcessing == onlyProcessing)
+            .Where(filter)
             .ToListAsync(cancel);
 
         foreach (var playlist in playlists)
