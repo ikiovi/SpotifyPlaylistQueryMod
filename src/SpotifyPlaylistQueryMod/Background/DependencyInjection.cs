@@ -3,13 +3,13 @@ using Polly.Extensions.Http;
 using Polly.Timeout;
 using SpotifyPlaylistQueryMod.Background.Configuration;
 using SpotifyPlaylistQueryMod.Background.Managers;
+using SpotifyPlaylistQueryMod.Background.Models;
 using SpotifyPlaylistQueryMod.Background.Services;
 using SpotifyPlaylistQueryMod.Background.Services.Cache;
 using SpotifyPlaylistQueryMod.Background.Services.Processing;
 using SpotifyPlaylistQueryMod.Background.Services.Queue;
 using SpotifyPlaylistQueryMod.Background.Services.Watcher;
 using SpotifyPlaylistQueryMod.Background.Services.Worker;
-using SpotifyPlaylistQueryMod.Models.Entities;
 
 namespace SpotifyPlaylistQueryMod;
 
@@ -27,10 +27,10 @@ public static partial class DependencyInjection
 
     public static IServiceCollection SetupBackgroundServices(this IServiceCollection services, IConfiguration config)
     {
-        services.AddSingleton<ITaskQueue<PlaylistQueryState>>(_ =>
+        services.AddSingleton<ITaskQueue<ProcessingQueryState>>(_ =>
         {
             var workersCount = 1;
-            return new ChannelBasedTaskQueue<PlaylistQueryState>(workersCount);
+            return new ChannelBasedTaskQueue<ProcessingQueryState>(workersCount);
         });
         services.AddSingleton<PlaylistQueriesTracker>();
         services.AddSingleton<PlaylistsInfoCache>();
@@ -39,15 +39,13 @@ public static partial class DependencyInjection
         services.AddTransient<QueryExecuteService>();
 
         //TODO: Сonfiguration
-        IAsyncPolicy<HttpResponseMessage> retry = HttpPolicyExtensions
-            .HandleTransientHttpError()
-            .Or<TimeoutRejectedException>()
-            .WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5));
-        IAsyncPolicy<HttpResponseMessage> timeout = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(15));
-
         services.AddHttpClient<QueryExecuteService>()
         .SetHandlerLifetime(TimeSpan.FromMinutes(5))
-        .AddPolicyHandler(Policy.WrapAsync(timeout, retry));
+        .AddPolicyHandler(HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .Or<TimeoutRejectedException>()
+            .WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5))
+        );
 
         services.AddBackgroundDataManagers(config);
 

@@ -22,8 +22,14 @@ public sealed class QueryExecuteService
     {
         IChangedTracks<ITrackInfo> changedTracks = await playlistsTracksService.GetChangedTracksAsync(state.Info.SourceId, state.Info.UserId, cancel);
         if (state.InputType == PlaylistQueryInputType.ChangedTracks && !changedTracks.HasChanges) return null;
-
-        return await ExecuteExternalQueryAsync(state, cancel);
+        try
+        {
+            return await ExecuteExternalQueryAsync(state, cancel);
+        }
+        catch (TaskCanceledException) when (!cancel.IsCancellationRequested)
+        {
+            return null;
+        }
     }
 
     public async Task<PlaylistChangeResponse?> ExecuteExternalQueryAsync(PlaylistQueryState state, CancellationToken cancel)
