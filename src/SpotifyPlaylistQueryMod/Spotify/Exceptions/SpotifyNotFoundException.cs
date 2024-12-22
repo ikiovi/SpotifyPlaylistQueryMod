@@ -10,5 +10,5 @@ public class SpotifyNotFoundException : SpotifyItemInaccessibleException
     public SpotifyNotFoundException(string message, Exception innerException) : base(message, innerException) { }
 
     public static bool CanCreate(APIException exception) =>
-        exception.Response?.StatusCode != System.Net.HttpStatusCode.NotFound;
+        exception.Response?.StatusCode == System.Net.HttpStatusCode.NotFound;
 }

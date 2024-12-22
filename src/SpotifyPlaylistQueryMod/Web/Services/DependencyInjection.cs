@@ -68,7 +68,7 @@ public static partial class DependencyInjection
         })
         .AddCookie(opts =>
         {
-            opts.ExpireTimeSpan = TimeSpan.FromHours(2); //TODO: Configuration
+            opts.ExpireTimeSpan = TimeSpan.FromDays(1); //TODO: Configuration
             opts.SlidingExpiration = true;
         })
         .AddSpotify(opts =>
