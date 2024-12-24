@@ -10,8 +10,11 @@ public record class PlaylistQueryState
     public PlaylistQueryInputType InputType { get; set; } = PlaylistQueryInputType.ModifiedSourcePlaylist;
     public PlaylistQueryInfo Info { get; set; } = default!;
 
-    public void ResetInputType() =>
-        InputType = PlaylistQueryInputType.ModifiedSourcePlaylist | (Info?.TargetId == null ? 0 : PlaylistQueryInputType.CurrentTargetPlaylist);
+    public void ResetInputType()
+    {
+        if (Info == null) throw new InvalidOperationException();
+        InputType = PlaylistQueryInputType.ModifiedSourcePlaylist | (Info.TargetId is not null ? PlaylistQueryInputType.CurrentTargetPlaylist : 0);
+    }
 
     public void SetStatusUnreadable() =>
       Status |= PlaylistQueryExecutionStatus.Blocked | PlaylistQueryExecutionStatus.NoReadAccess;

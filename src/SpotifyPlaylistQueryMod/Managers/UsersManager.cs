@@ -127,6 +127,7 @@ public sealed class UsersManager
     public Task<List<string>> GetValidCollaboratorsAsync(ICollection<string> users, CancellationToken cancel)
     {
         return context.Users
+            .AsNoTracking()
             .Where(u => users.Contains(u.Id))
             .Where(u => u.IsCollaborationEnabled)
             .Where(u => u.Status == UserStatus.None)

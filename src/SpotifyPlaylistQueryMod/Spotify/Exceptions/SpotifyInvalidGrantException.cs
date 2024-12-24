@@ -12,7 +12,6 @@ namespace SpotifyPlaylistQueryMod.Spotify.Exceptions;
 /// </summary>
 public sealed class SpotifyInvalidGrantException : SpotifyAuthenticationFailureException
 {
-    // 
     public const string Error = "invalid_grant";
 
     public SpotifyInvalidGrantException(IResponse response) : base(response) { }

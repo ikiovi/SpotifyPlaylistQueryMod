@@ -75,7 +75,7 @@ public sealed class SpotifyTracksInserter
                 g => g.Count()
             );
 
-        HashSet<string> validUsers = [userId, .. await usersManager.GetValidCollaboratorsAsync(users.Keys, cancel)];
+        HashSet<string> validUsers = [userId, .. (await usersManager.GetValidCollaboratorsAsync(users.Keys, cancel))];
 
         if (validUsers.Count == 1) return [];
 

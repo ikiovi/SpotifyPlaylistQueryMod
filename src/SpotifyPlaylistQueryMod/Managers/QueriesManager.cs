@@ -90,7 +90,29 @@ public sealed class QueriesManager
         await context.SaveChangesAsync(cancel);
 
         if (!sourceIdChanged && !targetIdChanged) return true;
-        await ResetPlaylistQueryStateAsync(id, sourceIdChanged, targetIdChanged, cancel).WithRetryPolicy(retryPolicy);
+
+        await retryPolicy.ExecuteAsync(async () =>
+        {
+            PlaylistQueryState state = await context.QueriesState
+                .IgnoreAutoIncludes()
+                .SingleAsync(s => s.Id == id, cancel);
+
+            state.Info = query;
+
+            if (targetIdChanged)
+            {
+                state.ClearWriteStatus();
+                state.ResetInputType();
+            }
+            if (sourceIdChanged)
+            {
+                state.ClearReadStatus();
+                state.LastRunSnapshotId = null;
+            }
+
+            await context.SaveChangesAsync(cancel);
+        });
+
         return true;
     }
 
@@ -98,9 +120,7 @@ public sealed class QueriesManager
     {
         return retryPolicy.ExecuteAsync(async () =>
         {
-            PlaylistQueryState? query = await context.QueriesState
-            .IgnoreAutoIncludes()
-            .SingleAsync(s => s.Id == id, cancel);
+            PlaylistQueryState query = await context.QueriesState.SingleAsync(s => s.Id == id, cancel);
 
             query.ResetInputType();
             query.LastRunSnapshotId = null;
@@ -128,26 +148,6 @@ public sealed class QueriesManager
 
             await context.SaveChangesAsync(cancel);
         });
-    }
-
-    private async Task ResetPlaylistQueryStateAsync(int id, bool targetIdChanged, bool sourceIdChanged, CancellationToken cancel = default)
-    {
-        PlaylistQueryState? query = await context.QueriesState
-            .IgnoreAutoIncludes()
-            .SingleAsync(s => s.Id == id, cancel);
-
-        if (targetIdChanged)
-        {
-            query.ClearWriteStatus();
-            query.ResetInputType();
-        }
-        if (sourceIdChanged)
-        {
-            query.ClearReadStatus();
-            query.LastRunSnapshotId = null;
-        }
-
-        await context.SaveChangesAsync(cancel);
     }
 
     public Task<PlaylistQueryInfo?> FindInfoForUserAsync(int id, string userId, CancellationToken cancel = default) =>
