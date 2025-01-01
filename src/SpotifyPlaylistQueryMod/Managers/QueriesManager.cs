@@ -11,7 +11,7 @@ using SpotifyPlaylistQueryMod.Managers.Attributes;
 using SpotifyPlaylistQueryMod.Mappings;
 using SpotifyPlaylistQueryMod.Models.Entities;
 using SpotifyPlaylistQueryMod.Utils;
-using SpotifyPlaylistQueryMod.Shared.API;
+using SpotifyPlaylistQueryMod.Shared.API.DTO;
 
 namespace SpotifyPlaylistQueryMod.Managers;
 

@@ -1,5 +1,5 @@
 ﻿using SpotifyPlaylistQueryMod.Models.Entities;
-using SpotifyPlaylistQueryMod.Shared.API;
+using SpotifyPlaylistQueryMod.Shared.API.DTO;
 using SpotifyPlaylistQueryMod.Shared.Enums;
 
 namespace SpotifyPlaylistQueryMod.Mappings;

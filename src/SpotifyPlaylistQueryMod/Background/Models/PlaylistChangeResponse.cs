@@ -1,5 +1,5 @@
 ﻿using SpotifyPlaylistQueryMod.Models;
-using SpotifyPlaylistQueryMod.Shared.API;
+using SpotifyPlaylistQueryMod.Shared.API.DTO;
 
 namespace SpotifyPlaylistQueryMod.Background.Models;
 

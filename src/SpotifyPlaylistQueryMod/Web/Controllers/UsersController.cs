@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpotifyPlaylistQueryMod.Managers;
 using SpotifyPlaylistQueryMod.Mappings;
-using SpotifyPlaylistQueryMod.Shared.API;
+using SpotifyPlaylistQueryMod.Shared.API.DTO;
 using SpotifyPlaylistQueryMod.Web.Extensions;
 
 namespace SpotifyPlaylistQueryMod.Web.Controllers;

@@ -2,6 +2,7 @@
 using SpotifyPlaylistQueryMod.Models.Entities;
 using SpotifyPlaylistQueryMod.Shared.Enums;
 using SpotifyPlaylistQueryMod.Shared.API;
+using SpotifyPlaylistQueryMod.Background.Models;
 
 namespace SpotifyPlaylistQueryMod.Background;
 
