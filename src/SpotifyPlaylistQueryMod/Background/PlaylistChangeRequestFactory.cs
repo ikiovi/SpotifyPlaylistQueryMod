@@ -22,7 +22,7 @@ internal static class PlaylistChangeRequestFactory
         if (state.InputType.HasFlag(PlaylistQueryInputType.ModifiedSourcePlaylist))
             newSourcePlaylist = await tracksService.GetCurrentSourcePlaylistAsync(state.Info.SourceId, state.Info.UserId, cancel);
         if (state.Info.TargetId != null && state.InputType.HasFlag(PlaylistQueryInputType.CurrentTargetPlaylist))
-            targetPlaylist = await tracksService.GetCurrentTargetPlaylistAsync(state.Info.SourceId, state.Info.UserId, cancel);
+            targetPlaylist = await tracksService.GetCurrentTargetPlaylistAsync(state.Info.TargetId, state.Info.UserId, cancel);
 
         return new()
         {
